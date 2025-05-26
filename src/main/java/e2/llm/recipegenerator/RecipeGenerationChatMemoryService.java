@@ -115,23 +115,22 @@ public class RecipeGenerationChatMemoryService {
 
     public String testConversation(String userRequest) {
         String response = generateResponse(userRequest);
-        System.out.println("Turn 0: " + response);
         int maxTurns = 5; // Prevent infinite loops
         int turn = 0;
 
         Scanner scanner = new Scanner(System.in);
-        System.out.println("type 'quit' to exit or else press Enter");
-        String userInput = scanner.nextLine();
+        boolean firstTurn = true;
 
-        while ((response != null && isLikelyQuestion(response) || (!userInput.trim().equalsIgnoreCase("quit"))) && turn < maxTurns) {
+        while ((response != null && isLikelyQuestion(response) || firstTurn) && turn < maxTurns) {
             System.out.println("Turn " + (turn+1) + ": " + response);
-            System.out.print("User clarification: ");
-            userInput = scanner.nextLine();
+            System.out.print("User clarification or 'quit': ");
+            String userInput = scanner.nextLine();
             if (userInput.equals("quit")) {
                 break; // Exit the loop if user types "quit"
             }
             response = generateResponse(userInput);
             turn++;
+            firstTurn = false;
         }
 
         return response;
