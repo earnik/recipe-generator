@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: recipe-generator
+
+#  ai:
+#    openai:
+#      api-key: AIzaSyDLzhKq8r6Xp3Vnx8uSJKYxoESY3l7pZzk
+#      base-url: https://generativelanguage.googleapis.com/v1beta
+#      chat:
+#        options:
+#          model: gemini-2.5-flash-preview-04-17
+#          temperature: 0.1
+
+  ai:
+    openai:
+      api-key: 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
+      base-url: https://api.openai.com
+      chat:
+        options:
+          model: gpt-4.1
+#          temperature: 0.1
+
+logging:
+  level:
+    org.springframework.web.client: DEBUG
+    org.springframework.ai: DEBUG
+
+server:
+    port: 8088
+
+
