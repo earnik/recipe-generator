@@ -2,15 +2,6 @@ spring:
   application:
     name: recipe-generator
 
-#  ai:
-#    openai:
-#      api-key: AIzaSyDLzhKq8r6Xp3Vnx8uSJKYxoESY3l7pZzk
-#      base-url: https://generativelanguage.googleapis.com/v1beta
-#      chat:
-#        options:
-#          model: gemini-2.5-flash-preview-04-17
-#          temperature: 0.1
-
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
