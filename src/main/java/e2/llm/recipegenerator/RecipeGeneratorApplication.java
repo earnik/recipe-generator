@@ -113,4 +113,38 @@ public class RecipeGeneratorApplication {
         //  3. Add more simple tests to see if the LLM can generate the SQL queries correctly
         //  4. Add UI for presentation
     }
+
+    /** TODO: add those test cases and see how the LLM performs
+     1. User Request: "Add a new generated column called subtotal of type DECIMAL(12,2) that is simply the product_price multiplied by quantity."
+     Expected SQL: ALTER TABLE sales ADD COLUMN subtotal DECIMAL(12,2) GENERATED ALWAYS AS (product_price * quantity) STORED;
+
+     2. User Request: "Create a generated column total_tax_amount of type DECIMAL(10,2) which is calculated as product_price times quantity times tax_rate."
+     Expected SQL: ALTER TABLE sales ADD COLUMN total_tax_amount DECIMAL(10,2) GENERATED ALWAYS AS (product_price * quantity * tax_rate) STORED;
+
+     3. User Request (with typo): "Define a new column final_price (DECIMAL(15,2)) as a generated column that is product_price times quantity plus (product_price times quantity times tax_rat)."
+     Expected SQL: ALTER TABLE sales ADD COLUMN final_price DECIMAL(15,2) GENERATED ALWAYS AS ((product_price * quantity) + (product_price * quantity * tax_rate)) STORED;
+
+     4. User Request: "Add a generated column discounted_price_per_unit of type DECIMAL(10,2) calculated as product_price multiplied by (1 minus discount_percentage), assuming 0 for discount_percentage if it's null."
+     Expected SQL: ALTER TABLE sales ADD COLUMN discounted_price_per_unit DECIMAL(10,2) GENERATED ALWAYS AS (product_price * (1 - COALESCE(discount_percentage, 0.00))) STORED;
+
+     5. User Request: "Make a new generated column net_total_after_discount (DECIMAL(12,2)) which is product_price times quantity times (1 minus COALESCE(discount_percentage, 0.00))."
+     Expected SQL: ALTER TABLE sales ADD COLUMN net_total_after_discount DECIMAL(12,2) GENERATED ALWAYS AS (product_price * quantity * (1 - COALESCE(discount_percentage, 0.00))) STORED;
+
+     6. User Request: "Add a generated column order_value_with_all_adjustments of type DECIMAL(15,2) that takes product_price times quantity, applies the discount_percentage (defaulting to 0 if null), and then adds tax based on this discounted subtotal and the tax_rate."
+     Expected SQL: ALTER TABLE sales ADD COLUMN order_value_with_all_adjustments DECIMAL(15,2) GENERATED ALWAYS AS ((product_price * quantity * (1 - COALESCE(discount_percentage, 0.00))) * (1 + tax_rate)) STORED;
+
+     7. User Request: "Create a generated is_large_order column (BOOLEAN or INT) that is true (or 1) if quantity is greater than 10, and false (or 0) otherwise."
+     Expected SQL (using INT for broader compatibility): ALTER TABLE sales ADD COLUMN is_large_order INT GENERATED ALWAYS AS (CASE WHEN quantity > 10 THEN 1 ELSE 0 END) STORED;
+     (For PostgreSQL, BOOLEAN would be: ALTER TABLE sales ADD COLUMN is_large_order BOOLEAN GENERATED ALWAYS AS (quantity > 10) STORED;)
+
+     8. User Request (with typo): "Add a generated column is_priority_electronic as an INT type, which is 1 if LOB is 'Electronics' AND quantity is greater then 1, and 0 otherwise."
+     Expected SQL: ALTER TABLE sales ADD COLUMN is_priority_electronic INT GENERATED ALWAYS AS (CASE WHEN LOB = 'Electronics' AND quantity > 1 THEN 1 ELSE 0 END) STORED;
+
+     9. User Request: "Define a new generated column delivery_target_month of type VARCHAR(7) representing the year and month of the delivery_date formatted as 'YYYY-MM'; it should be NULL if delivery_date is NULL."
+     Expected SQL (PostgreSQL/SQLite example): ALTER TABLE sales ADD COLUMN delivery_target_month VARCHAR(7) GENERATED ALWAYS AS (CASE WHEN delivery_date IS NOT NULL THEN strftime('%Y-%m', delivery_date) ELSE NULL END) STORED;
+     (MySQL: FORMAT_DATE(delivery_date, '%Y-%m') or similar, SQL Server: FORMAT(delivery_date, 'yyyy-MM'))
+
+     10. User Request: "Create a generated column status_group of type VARCHAR(50) that is 'Active' if status is 'PENDING' or 'SHIPPED', and 'Finalized' if status is 'COMPLETED' or 'DELIVERED', otherwise 'Other'."
+     Expected SQL: ALTER TABLE sales ADD COLUMN status_group VARCHAR(50) GENERATED ALWAYS AS (CASE WHEN status IN ('PENDING', 'SHIPPED') THEN 'Active' WHEN status IN ('COMPLETED', 'DELIVERED') THEN 'Finalized' ELSE 'Other' END) STORED;
+     */
 }
