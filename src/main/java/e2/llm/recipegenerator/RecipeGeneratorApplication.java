@@ -100,7 +100,7 @@ public class RecipeGeneratorApplication {
                 "Make sure all calculated monetary values are rounded to 2 decimal places.\"";
 
 
-        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS);
+        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS, "sales_preview.csv");
 
 //        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.SMART_INSTRUCTIONS);
 
@@ -110,7 +110,7 @@ public class RecipeGeneratorApplication {
 
         // TODO: next steps:
         //  1.  Add bedrock
-        //  2.  Add csv PREVIEW along with database schema to reduce questions
+        //  2.  Add csv PREVIEW along with database schema to reduce questions - DONE
         //  3.  Add UI for presentation
     }
 }

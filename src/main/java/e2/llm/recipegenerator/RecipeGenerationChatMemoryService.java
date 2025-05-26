@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -92,15 +93,13 @@ public class RecipeGenerationChatMemoryService {
             "Before outputting SQL, ask yourself: \"Am I making any assumptions about user intent or data interpretation that I haven't confirmed?\" If yes, ask a question instead."
     };
 
-    private final ChatClient chatClient;
     private final ChatMemory chatMemory; // Injected or provided ChatMemory
     private final ChatModel chatModel; // Optional: if you need to specify a model
 
     private Message systemMessage; // To store the initialized system message
     private String conversationId; // Unique identifier for the conversation
 
-    public RecipeGenerationChatMemoryService(ChatClient chatClient, ChatMemory chatMemory, ChatModel chatModel) {
-        this.chatClient = chatClient;
+    public RecipeGenerationChatMemoryService(ChatMemory chatMemory, ChatModel chatModel) {
         this.chatMemory = chatMemory;
         this.chatModel = chatModel;
     }
@@ -110,14 +109,17 @@ public class RecipeGenerationChatMemoryService {
      * This should be called once before starting a new SQL generation conversation.
      * @param tableSchema The database schema description.
      */
-    public void initializeConversation(String tableSchema, String[] instructions) {
+    public void initializeConversation(String tableSchema, String[] instructions, String previewCsvPath) {
         String systemPromptTemplateText = """
             You are an expert SQL query generator. Your task is to generate SQL queries based on
             natural language requests and the database schema provided.
             
             THE DATABASE SCHEMA IS PROVIDED BELOW:
             {schema}
-
+            
+            TABLE PREVIEW:
+            {preview}
+            
             INSTRUCTIONS:
             {instructions}
             """;
@@ -125,10 +127,14 @@ public class RecipeGenerationChatMemoryService {
         int conversationIdInt = (new Random()).nextInt(1000); // Generate a random conversation ID for this session
         conversationId = String.valueOf(conversationIdInt);
 
+        String previewContents = readPreviewCsv(previewCsvPath);
+        System.out.println("Preview contents: \n" + previewContents);
+
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemPromptTemplateText);
         Map<String, Object> model = new HashMap<>();
         model.put("schema", tableSchema);
         model.put("instructions", instructions); // Use the combined instructions string
+        model.put("preview", previewContents);
 
         this.systemMessage = systemPromptTemplate.createMessage(model);
 
@@ -137,6 +143,21 @@ public class RecipeGenerationChatMemoryService {
 
         // Add system message to chat memory
         this.chatMemory.add(conversationId, this.systemMessage);
+    }
+
+    private static String readPreviewCsv(String previewCsvPath) {
+        // Implement logic to read the CSV file and return its contents as a string
+        // For simplicity, let's assume the CSV is small and can be read into memory
+        // In a real application, we might want to handle larger files differently
+        try (Scanner scanner = new Scanner(Objects.requireNonNull(RecipeGenerationChatMemoryService.class.getResourceAsStream("/" + previewCsvPath)))) {
+            StringBuilder previewContents = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                previewContents.append(scanner.nextLine()).append("\n");
+            }
+            return previewContents.toString().trim(); // Remove trailing newline
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read preview CSV: " + e.getMessage(), e);
+        }
     }
 
     /**
