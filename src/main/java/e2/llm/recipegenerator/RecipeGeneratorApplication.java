@@ -107,10 +107,10 @@ public class RecipeGeneratorApplication {
         String response = recipeGenerationChatMemoryService.testConversation(userRequest);
         System.out.println("LLM FINAL RESPONSE: " + response);
 
-
         // TODO: next steps:
-        //  1.  Add bedrock
-        //  2.  Add csv PREVIEW along with database schema to reduce questions - DONE
-        //  3.  Add UI for presentation
+        //  1. Add bedrock
+        //  2. Add csv PREVIEW along with database schema to reduce questions - DONE
+        //  3. Add more simple tests to see if the LLM can generate the SQL queries correctly
+        //  4. Add UI for presentation
     }
 }
