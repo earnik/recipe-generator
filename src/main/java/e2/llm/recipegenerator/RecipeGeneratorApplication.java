@@ -100,9 +100,17 @@ public class RecipeGeneratorApplication {
                 "Make sure all calculated monetary values are rounded to 2 decimal places.\"";
 
 
-        recipeGenerationChatMemoryService.initializeConversation(schemaJson);
+        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS);
+
+//        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.SMART_INSTRUCTIONS);
 
         String response = recipeGenerationChatMemoryService.testConversation(userRequest);
         System.out.println("LLM FINAL RESPONSE: " + response);
+
+
+        // TODO: next steps:
+        //  1.  Add bedrock
+        //  2.  Add csv PREVIEW along with database schema to reduce questions
+        //  3.  Add UI for presentation
     }
 }

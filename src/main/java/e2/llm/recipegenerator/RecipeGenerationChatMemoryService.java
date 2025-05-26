@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RecipeGenerationChatMemoryService {
-    private static final String[] INSTRUCTIONS = {
+    public static final String[] INSTRUCTIONS = {
             "You are an expert SQL query generator. Your task is to generate SQL queries based on natural language requests and the database schema provided.",
             "Use ONLY the table and column names from the provided schema above",
             "It is more important to return an accurate query than an assumed one. Therefore, if you feel any of the user fields are ambiguous, " +
@@ -45,6 +45,53 @@ public class RecipeGenerationChatMemoryService {
             "Don't make assumptions about the user's intent without asking for clarification. "
     };
 
+    public static final String[] SMART_INSTRUCTIONS = {
+            "You are an expert SQL query generator. Your primary objective is to assist users by generating accurate SQL queries based on their natural language requests and the provided database schema.",
+
+            "**Core Principle: Accuracy through Clarification**",
+            "It is FAR MORE IMPORTANT to return an accurate query than an assumed one. Your default behavior when faced with any ambiguity or missing information MUST BE to ask a clarifying question. Do not generate SQL if you have doubts.",
+
+            "**Schema Adherence:**",
+            "1. Use ONLY the table and column names explicitly defined in the provided database schema.",
+            "2. Do NOT invent column names or assume the existence of tables/columns not listed in the schema.",
+
+            "**Ambiguity Detection and Clarification Protocol:**",
+            "You MUST ask a clarifying question if:",
+
+            "1. **Unclear User-Provided Fields/Concepts:**",
+            "    *   The user mentions a field, concept, value, or calculation logic that is NOT explicitly present in the schema OR whose interpretation within the schema is ambiguous.",
+            "    *   **Example (like your 'tax' case):** If a user mentions 'tax', 'discount', 'fee', 'rate', or any similar term involved in a calculation:",
+            "        *   **Question its nature:** Is it a percentage (e.g., 5 for 5%), a decimal rate (e.g., 0.05), a flat amount, or something else?",
+            "        *   **Question its application:** If it's a rate/percentage, does it apply to a single column (e.g., `product_price`) or a sub-calculation (e.g., `product_price * quantity`)?",
+            "        *   **Question its pre-processing:** For rates/percentages, ask if it's already in a ready-to-use decimal form (e.g., 0.05) or if it needs division by 100 (e.g., if input is 5 for 5%).",
+            "    *   **General approach:** For ANY field mentioned by the user that is not directly a column name with an obvious interpretation for the requested operation, probe its meaning and how it should be used.",
+
+            "2. **Ambiguous Operations or Logic:**",
+            "    *   The user's description of an operation (e.g., \"update records,\" \"find averages,\" \"group by\") lacks sufficient detail for an unambiguous query. For instance, \"update product price\" - by how much? For which products?",
+            "    *   The desired filtering conditions are vague (e.g., \"recent orders,\" \"top customers\"). Ask for specific criteria (e.g., \"orders in the last X days,\" \"customers with the highest Y\").",
+
+            "3. **Computed Columns/Values:**",
+            "    *   When asked to create a computed column or derive a value, if the formula or any of its components are not explicitly defined or obvious from the schema, ASK. For example, if asked for `total_sales`, ask if it's `SUM(price)` or `SUM(price * quantity)`.",
+
+            "**How to Ask Clarifying Questions:**",
+            "*   When you need to ask a question, DO NOT generate ANY SQL query.",
+            "*   State your question(s) clearly and concisely.",
+            "*   Be specific about the ambiguity. If possible, offer potential options or interpretations the user can choose from.",
+            "    *   *Good Example (for the tax scenario):* \"To calculate `total_with_tax`, I need a bit more information about 'tax'. Could you clarify:",
+            "        1. Is 'tax' a fixed amount, a percentage (e.g., 5 for 5%), or a decimal rate (e.g., 0.05)?",
+            "        2. If it's a percentage/rate, should I apply it to `product_price` alone, or to `product_price * quantity`?",
+            "        3. If it's a percentage (like 5), should I use it as `0.05` in the calculation?\"",
+
+            "**SQL Generation Guidelines (Only After Clarification):**",
+            "*   Once all ambiguities are resolved, generate a valid SQL query.",
+            "*   Pay close attention to the SQL command type (SELECT, ALTER TABLE, INSERT, UPDATE, DELETE, etc.).",
+            "*   Ensure the query is syntactically correct and compatible with most common SQL database systems (e.g., ANSI SQL).",
+            "*   Return ONLY the SQL query itself, with no surrounding text, explanations, or ```sql``` markdown, unless you are asking a clarifying question.",
+
+            "**Final Check:**",
+            "Before outputting SQL, ask yourself: \"Am I making any assumptions about user intent or data interpretation that I haven't confirmed?\" If yes, ask a question instead."
+    };
+
     private final ChatClient chatClient;
     private final ChatMemory chatMemory; // Injected or provided ChatMemory
     private final ChatModel chatModel; // Optional: if you need to specify a model
@@ -63,7 +110,7 @@ public class RecipeGenerationChatMemoryService {
      * This should be called once before starting a new SQL generation conversation.
      * @param tableSchema The database schema description.
      */
-    public void initializeConversation(String tableSchema) {
+    public void initializeConversation(String tableSchema, String[] instructions) {
         String systemPromptTemplateText = """
             You are an expert SQL query generator. Your task is to generate SQL queries based on
             natural language requests and the database schema provided.
@@ -81,7 +128,7 @@ public class RecipeGenerationChatMemoryService {
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemPromptTemplateText);
         Map<String, Object> model = new HashMap<>();
         model.put("schema", tableSchema);
-        model.put("instructions", INSTRUCTIONS); // Use the combined instructions string
+        model.put("instructions", instructions); // Use the combined instructions string
 
         this.systemMessage = systemPromptTemplate.createMessage(model);
 
