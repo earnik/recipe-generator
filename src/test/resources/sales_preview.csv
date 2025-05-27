@@ -1,0 +1,11 @@
+id,product_price,quantity,tax,storage_type,delivery_date,customer_id,LOB,status,price_rate
+1,29.99,2,3.00,Warehouse A,2023-10-15,101,Electronics,COMPLETED,0.95
+2,150.00,1,12.00,Shelf B2,2023-11-01,102,Home Goods,DELIVERED,1.00
+3,9.75,10,7.80,,2024-01-20,101,Office Supplies,SHIPPED,0.80
+4,499.50,1,39.96,Cold Storage,,103,Groceries,PENDING,
+5,19.49,3,2.92,Local Distribution,2023-12-05,104,Apparel,COMPLETED,0.90
+6,75.00,1,6.00,Warehouse B,2024-02-10,105,Electronics,PENDING,0.98
+7,12.99,5,3.25,Shelf A1,2024-01-15,102,Books,SHIPPED,
+8,899.00,1,71.92,Secure Vault,,106,Jewelry,HOLD,1.10
+9,5.99,20,4.79,Bulk Storage,2023-11-20,107,Toys,COMPLETED,0.75
+10,320.00,1,25.60,Central Hub,2024-03-01,101,Electronics,SHIPPED,0.99

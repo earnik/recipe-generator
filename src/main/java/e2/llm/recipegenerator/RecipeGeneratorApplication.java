@@ -79,39 +79,50 @@ public class RecipeGeneratorApplication {
                   ]
                 }
                 """;
-        String userRequest = "final_price_after_discount (DECIMAL(12,2)): This should be the product_price multiplied by quantity, and then the discount_percentage should be applied. If discount_percentage is NULL, assume a 0% discount.\n" +
-                "total_amount_payable (DECIMAL(12,2)): This is the final_price_after_discount plus the tax.\n" +
-                "order_category (VARCHAR(100)):\n" +
-                "If the LOB is 'Electronics' AND product_price is greater than 1500, it should be 'High-Value Electronics'.\n" +
-                "If the LOB is 'Books' AND quantity is greater than 10, it should be 'Bulk Books Order'.\n" +
-                "If the status is 'CANCELLED', it should be 'Cancelled Order'.\n" +
-                "For all other orders, if priority_level is 1, it should be 'Priority Order - General'.\n" +
-                "Otherwise, it should be 'Standard Order'.\n" +
-                "estimated_shipping_tier (VARCHAR(50)):\n" +
-                "If delivery_date is NULL:\n" +
-                "If status is 'PENDING' and order_date is older than 7 days from today (assume today is '2024-03-15'), set this to 'Delayed - Action Required'.\n" +
-                "Otherwise (if delivery_date is NULL but not meeting the above pending condition), set it to 'Awaiting Shipment Info'.\n" +
-                "If delivery_date is NOT NULL:\n" +
-                "Calculate the difference in days between delivery_date and order_date.\n" +
-                "If the difference is 0 or 1 day, set to 'Express'.\n" +
-                "If the difference is between 2 and 5 days (inclusive), set to 'Standard'.\n" +
-                "If the difference is greater than 5 days, set to 'Economy'.\n" +
-                "If delivery_date is before order_date, set it to 'Data Error - Delivery Before Order'.\n" +
-                "Make sure all calculated monetary values are rounded to 2 decimal places.\"";
+//        String userRequest = "final_price_after_discount (DECIMAL(12,2)): This should be the product_price multiplied by quantity, and then the discount_percentage should be applied. If discount_percentage is NULL, assume a 0% discount.\n" +
+//                "total_amount_payable (DECIMAL(12,2)): This is the final_price_after_discount plus the tax.\n" +
+//                "order_category (VARCHAR(100)):\n" +
+//                "If the LOB is 'Electronics' AND product_price is greater than 1500, it should be 'High-Value Electronics'.\n" +
+//                "If the LOB is 'Books' AND quantity is greater than 10, it should be 'Bulk Books Order'.\n" +
+//                "If the status is 'CANCELLED', it should be 'Cancelled Order'.\n" +
+//                "For all other orders, if priority_level is 1, it should be 'Priority Order - General'.\n" +
+//                "Otherwise, it should be 'Standard Order'.\n" +
+//                "estimated_shipping_tier (VARCHAR(50)):\n" +
+//                "If delivery_date is NULL:\n" +
+//                "If status is 'PENDING' and order_date is older than 7 days from today (assume today is '2024-03-15'), set this to 'Delayed - Action Required'.\n" +
+//                "Otherwise (if delivery_date is NULL but not meeting the above pending condition), set it to 'Awaiting Shipment Info'.\n" +
+//                "If delivery_date is NOT NULL:\n" +
+//                "Calculate the difference in days between delivery_date and order_date.\n" +
+//                "If the difference is 0 or 1 day, set to 'Express'.\n" +
+//                "If the difference is between 2 and 5 days (inclusive), set to 'Standard'.\n" +
+//                "If the difference is greater than 5 days, set to 'Economy'.\n" +
+//                "If delivery_date is before order_date, set it to 'Data Error - Delivery Before Order'.\n" +
+//                "Make sure all calculated monetary values are rounded to 2 decimal places.\"";
+//        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS, "sales_preview.csv");
+//        String response = recipeGenerationChatMemoryService.testConversation(userRequest);
+//        System.out.println("LLM FINAL RESPONSE: " + response);
+        simpleTestLoop(schemaJson, recipeGenerationChatMemoryService);
+    }
 
+    static final String[] USER_REQUESTS = {
+        "Add a new generated column called subtotal of type DECIMAL(12,2) that is simply the product_price multiplied by quantity.",
+        "Create a generated column total_tax_amount of type DECIMAL(10,2) which is calculated as product_price times quantity times tax_rate.",
+        "Define a new column final_price (DECIMAL(15,2)) as a generated column that is product_price times quantity plus (product_price times quantity times tax_rat).",
+        "Add a generated column discounted_price_per_unit of type DECIMAL(10,2) calculated as product_price multiplied by (1 minus discount_percentage), assuming 0 for discount_percentage if it's null.",
+        "Make a new generated column net_total_after_discount (DECIMAL(12,2)) which is product_price times quantity times (1 minus COALESCE(discount_percentage, 0.00)).",
+        "Add a generated column order_value_with_all_adjustments of type DECIMAL(15,2) that takes product_price times quantity, applies the discount_percentage (defaulting to 0 if null), and then adds tax based on this discounted subtotal and the tax_rate.",
+        "Create a generated is_large_order column (BOOLEAN or INT) that is true (or 1) if quantity is greater than 10, and false (or 0) otherwise.",
+        "Add a generated column is_priority_electronic as an INT type, which is 1 if LOB is 'Electronics' AND quantity is greater then 1, and 0 otherwise.",
+        "Define a new generated column delivery_target_month of type VARCHAR(7) representing the year and month of the delivery_date formatted as 'YYYY-MM'; it should be NULL if delivery_date is NULL.",
+        "Create a generated column status_group of type VARCHAR(50) that is 'Active' if status is 'PENDING' or 'SHIPPED', and 'Finalized' if status is 'COMPLETED' or 'DELIVERED', otherwise 'Other'."
+    };
 
-        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS, "sales_preview.csv");
-
-//        recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.SMART_INSTRUCTIONS);
-
-        String response = recipeGenerationChatMemoryService.testConversation(userRequest);
-        System.out.println("LLM FINAL RESPONSE: " + response);
-
-        // TODO: next steps:
-        //  1. Add bedrock
-        //  2. Add csv PREVIEW along with database schema to reduce questions - DONE
-        //  3. Add more simple tests to see if the LLM can generate the SQL queries correctly
-        //  4. Add UI for presentation
+    private static void simpleTestLoop(String schemaJson, RecipeGenerationChatMemoryService recipeGenerationChatMemoryService) {
+        for (String userRequest : USER_REQUESTS) {
+            System.out.println("------------------------------------------------------------------------------");
+            recipeGenerationChatMemoryService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS, "sales_preview.csv");
+            recipeGenerationChatMemoryService.testConversation(userRequest);
+        }
     }
 
     /** TODO: add those test cases and see how the LLM performs

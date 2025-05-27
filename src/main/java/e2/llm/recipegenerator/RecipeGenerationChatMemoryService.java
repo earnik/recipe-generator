@@ -1,14 +1,11 @@
 package e2.llm.recipegenerator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -128,7 +125,7 @@ public class RecipeGenerationChatMemoryService {
         conversationId = String.valueOf(conversationIdInt);
 
         String previewContents = readPreviewCsv(previewCsvPath);
-        System.out.println("Preview contents: \n" + previewContents);
+//        System.out.println("Preview contents: \n" + previewContents);
 
         SystemPromptTemplate systemPromptTemplate = new SystemPromptTemplate(systemPromptTemplateText);
         Map<String, Object> model = new HashMap<>();
@@ -182,23 +179,23 @@ public class RecipeGenerationChatMemoryService {
     }
 
     public String testConversation(String userRequest) {
+        System.out.println("User Request: " + userRequest);
         String response = generateResponse(userRequest);
+        System.out.println("LLM Response: " + response);
         int maxTurns = 5; // Prevent infinite loops
         int turn = 0;
 
         Scanner scanner = new Scanner(System.in);
-        boolean firstTurn = true;
 
-        while ((response != null && isLikelyQuestion(response) || firstTurn) && turn < maxTurns) {
-            System.out.println("Turn " + (turn+1) + ": " + response);
-            System.out.print("User clarification or 'quit': ");
+        while ((response != null && isLikelyQuestion(response)) && turn < maxTurns) {
+            System.out.print("Iteration " + (turn+1) + " - User clarification or 'quit': ");
             String userInput = scanner.nextLine();
             if (userInput.equals("quit")) {
                 break; // Exit the loop if user types "quit"
             }
             response = generateResponse(userInput);
+            System.out.println("LLM Response: " + response);
             turn++;
-            firstTurn = false;
         }
 
         return response;

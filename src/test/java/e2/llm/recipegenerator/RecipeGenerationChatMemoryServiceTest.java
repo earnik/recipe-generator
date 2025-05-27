@@ -33,7 +33,7 @@ public class RecipeGenerationChatMemoryServiceTest {
         String userRequest = "Add a new computed column called total_with_tax of type DECIMAL(20,2) that multiplies product_price by quantity and then adds tax";
         String expectedSQL = "ALTER TABLE sales ADD COLUMN total_with_tax DECIMAL(20,2) GENERATED ALWAYS AS ((product_price * quantity) + (product_price * quantity * tax_rate))";
 
-        sqlGeneratorChatService.initializeConversation(schemaJson);
+        sqlGeneratorChatService.initializeConversation(schemaJson, RecipeGenerationChatMemoryService.INSTRUCTIONS, "sales_preview.csv");
 
         String response = sqlGeneratorChatService.testConversation(userRequest);
 
@@ -41,6 +41,5 @@ public class RecipeGenerationChatMemoryServiceTest {
         assertTrue(sqlValidator.isValidSql(response));
         //assertEquals(expectedSQL, response.trim());
     }
-
 
 }
